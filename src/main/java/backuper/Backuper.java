@@ -1,19 +1,22 @@
 package backuper;
 
+import java.io.File;
+import java.util.Map;
+
 public class Backuper {
-	private String srcPath;
-	private String dstPath;
+	private FolderScanner folderScanner;
 
-	public void setSrcPath(String srcPath) {
-		this.srcPath = srcPath;
+	public Backuper() {
+		folderScanner = new FolderScanner();
 	}
 
-	public void setDstPath(String dstPath) {
-		this.dstPath = dstPath;
-	}
+	public void doBackup(String srcPath, String dstPath) {
+		System.out.println("Scanning source folder...");
+		Map<String, File> srcFiles = folderScanner.scan(srcPath);
 
-	public void doBackup() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("Scanning destination folder...");
+		Map<String, File> dstFiles = folderScanner.scan(dstPath);
+
+		//TODO
 	}
 }
