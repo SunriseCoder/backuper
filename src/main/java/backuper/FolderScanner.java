@@ -1,22 +1,27 @@
 package backuper;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
 public class FolderScanner {
-    private String path;
-    private Queue<File> foldersToScan;
+    private Options options;
+    private Path startPath;
+    private Queue<Path> foldersToScan;
     private Map<String, FileMetadata> foundFiles;
 
-    public synchronized Map<String, FileMetadata> scan(String path) {
-        reset();
+    public synchronized Map<String, FileMetadata> scan(String path, Options options) throws IOException {
+        reset(options);
 
-        File startFolder = new File(path);
-        this.path = startFolder.getPath();
-        foldersToScan.add(startFolder);
+        this.startPath = Paths.get(path);
+        foldersToScan.add(startPath);
 
         while (!foldersToScan.isEmpty()) {
             scanNextSourceFolder();
@@ -28,31 +33,31 @@ public class FolderScanner {
         return foundFiles;
     }
 
-    private void reset() {
+    private void reset(Options options) {
+        this.options = options;
         foldersToScan = new LinkedList<>();
         foundFiles = new LinkedHashMap<>();
     }
 
-    private void scanNextSourceFolder() {
-        File folder = foldersToScan.poll();
-        File[] files = folder.listFiles();
-        if (files == null) {
-            return;
-        }
-        for (File file : files) {
-            if (file.isDirectory()) {
-                foldersToScan.add(file);
-            } else {
-                String relativePath = getRelativePath(file);
-                foundFiles.put(relativePath, new FileMetadata(file));
-            }
-        }
-    }
+    private void scanNextSourceFolder() throws IOException {
+        Path folder = foldersToScan.poll();
 
-    private String getRelativePath(File file) {
-        String filePath = file.getPath();
-        String relativePath = filePath.substring(path.length() + 1);
-        return relativePath;
+        if (Files.isSymbolicLink(folder) && !options.isSet(Options.Names.FOLLOW_SYMLINKS)) {
+            return; // No need to scan Symlinks
+        }
+
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(folder)) {
+            for (Path path : ds) {
+                if (Files.isDirectory(path)) {
+                    foldersToScan.add(path);
+                }
+
+                String relativePath = startPath.relativize(path).toString();
+                foundFiles.put(relativePath, new FileMetadata(path, relativePath));
+            }
+        } catch (AccessDeniedException e) {
+            return; // No scan of the folder, where we don't have permissions
+        }
     }
 
     private void printStatus() {

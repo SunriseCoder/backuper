@@ -1,5 +1,6 @@
 package backuper;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,12 +19,12 @@ public class Backuper {
         changeSizedFiles = new LinkedHashMap<>();
     }
 
-    public void doBackup(String srcPath, String dstPath) {
+    public void doBackup(String srcPath, String dstPath, Options options) throws IOException {
         System.out.println("Scanning source folder...");
-        Map<String, FileMetadata> srcFiles = folderScanner.scan(srcPath);
+        Map<String, FileMetadata> srcFiles = folderScanner.scan(srcPath, options);
 
         System.out.println("Scanning destination folder...");
-        Map<String, FileMetadata> dstFiles = folderScanner.scan(dstPath);
+        Map<String, FileMetadata> dstFiles = folderScanner.scan(dstPath, options);
 
         System.out.println("Comparing the trees...");
         compareFileTrees(srcFiles, dstFiles);
@@ -54,18 +55,36 @@ public class Backuper {
 
     private void printTreeDiffs() {
         System.out.println("New files:");
-        printCollection(newFiles.keySet(), "\t + ");
+        printMetadataCollection(newFiles.values(), "\t + ");
 
         System.out.println("Files with changed size:");
-        printCollection(changeSizedFiles.keySet(), "\t * ");
+        printMetadataCollection(changeSizedFiles.values(), "\t * ");
 
         System.out.println("Deleted files:");
-        printCollection(deletedFiles.keySet(), "\t - ");
+        printMetadataCollection(deletedFiles.values(), "\t - ");
     }
 
-    private void printCollection(Collection<String> collection, String prefix) {
-        for (String element : collection) {
-            System.out.println(prefix + element);
+    private void printMetadataCollection(Collection<FileMetadata> collection, String prefix) {
+        for (FileMetadata element : collection) {
+            String message = prefix;
+
+            switch (element.getType()) {
+            case DIRECTORY:
+                message += "|/ ";
+                break;
+            case FILE:
+                message += "## ";
+                break;
+            case SYMLINK:
+                message += "-> ";
+                break;
+            default:
+                break;
+            }
+
+            message += element.getPath();
+
+            System.out.println(message);
         }
     }
 

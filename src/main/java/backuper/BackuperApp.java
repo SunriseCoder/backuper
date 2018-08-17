@@ -1,8 +1,10 @@
 package backuper;
 
+import java.io.IOException;
+
 public class BackuperApp {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length < 2) {
             printUsage();
             System.exit(-1);
@@ -12,7 +14,8 @@ public class BackuperApp {
         String dstPath = args[1];
 
         Backuper backuper = new Backuper();
-        backuper.doBackup(srcPath, dstPath);
+        Options options = new Options();
+        backuper.doBackup(srcPath, dstPath, options );
     }
 
     private static void printUsage() {
