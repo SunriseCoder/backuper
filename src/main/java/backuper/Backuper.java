@@ -82,7 +82,7 @@ public class Backuper {
                 break;
             }
 
-            message += element.getPath();
+            message += element.getRelativePath();
 
             System.out.println(message);
         }

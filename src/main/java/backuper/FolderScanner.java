@@ -6,15 +6,15 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
+import java.util.TreeMap;
 
 public class FolderScanner {
     private Options options;
     private Path startPath;
-    private Queue<Path> foldersToScan;
+    private Deque<Path> foldersToScan;
     private Map<String, FileMetadata> foundFiles;
 
     public synchronized Map<String, FileMetadata> scan(String path, Options options) throws IOException {
@@ -36,7 +36,7 @@ public class FolderScanner {
     private void reset(Options options) {
         this.options = options;
         foldersToScan = new LinkedList<>();
-        foundFiles = new LinkedHashMap<>();
+        foundFiles = new TreeMap<>();
     }
 
     private void scanNextSourceFolder() throws IOException {
