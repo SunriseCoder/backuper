@@ -43,11 +43,15 @@ public class FolderScanner {
         Path folder = foldersToScan.poll();
 
         if (Files.isSymbolicLink(folder) && !options.isSet(Options.Names.FOLLOW_SYMLINKS)) {
-            return; // No need to scan Symlinks
+            return;
         }
 
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(folder)) {
             for (Path path : ds) {
+                if (Files.isSymbolicLink(path) && !options.isSet(Options.Names.FOLLOW_SYMLINKS)) {
+                    continue; // Following symlinks only if the option is on
+                }
+
                 if (Files.isDirectory(path)) {
                     foldersToScan.add(path);
                 }

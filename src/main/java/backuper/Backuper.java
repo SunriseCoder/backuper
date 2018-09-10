@@ -1,5 +1,6 @@
 package backuper;
 
+import java.io.Console;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -8,7 +9,11 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class Backuper {
+    private String srcPath;
+    private String dstPath;
+
     private FolderScanner folderScanner;
+
     private Map<String, FileMetadata> newFiles;
     private Map<String, FileMetadata> changeSizedFiles;
     private Map<String, FileMetadata> deletedFiles;
@@ -19,7 +24,7 @@ public class Backuper {
         changeSizedFiles = new LinkedHashMap<>();
     }
 
-    public void doBackup(String srcPath, String dstPath, Options options) throws IOException {
+    public void doBackup(Options options) throws IOException {
         System.out.println("Scanning source folder...");
         Map<String, FileMetadata> srcFiles = folderScanner.scan(srcPath, options);
 
@@ -31,7 +36,10 @@ public class Backuper {
         printTreeDiffs();
 
         if (isBackupConfirmed()) {
-            doBackup();
+            processFiles();
+            System.out.println("Copying is done");
+        } else {
+            System.out.println("Copying has been cancelled");
         }
     }
 
@@ -89,15 +97,36 @@ public class Backuper {
     }
 
     private boolean isBackupConfirmed() {
+        Console console = System.console();
+        if (console == null) {
+            return true; // If console does not support by environment, do not asking for confirmation
+        }
+
         System.out.println("Please type \"yes\" to start syncronization");
-        String input = System.console().readLine();
+        String input = console.readLine();
         boolean result = "yes".equals(input);
         return result;
     }
 
-    private void doBackup() {
+    private void processFiles() throws IOException {
         System.out.println("Synchronization started...");
 
-        // TODO Auto-generated method stub
+        FileProcessor processor = new FileProcessor();
+        processor.setSrcPath(srcPath);
+        processor.setDstPath(dstPath);
+
+        processor.addFilesToCopy(newFiles.values());
+        processor.addFilesToCopy(changeSizedFiles.values());
+        processor.addFilesToDelete(deletedFiles.values());
+
+        processor.start();
+    }
+
+    public void setSrcPath(String srcPath) {
+        this.srcPath = srcPath;
+    }
+
+    public void setDstPath(String dstPath) {
+        this.dstPath = dstPath;
     }
 }

@@ -14,8 +14,11 @@ public class BackuperApp {
         String dstPath = args[1];
 
         Backuper backuper = new Backuper();
+        backuper.setSrcPath(srcPath);
+        backuper.setDstPath(dstPath);
+
         Options options = new Options();
-        backuper.doBackup(srcPath, dstPath, options );
+        backuper.doBackup(options );
     }
 
     private static void printUsage() {
