@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import backuper.helpers.PrintHelper;
+
 public class FolderScanner {
     private Options options;
     private Path startPath;
@@ -28,7 +30,7 @@ public class FolderScanner {
             printStatus();
         }
 
-        System.out.println();
+        PrintHelper.println();
 
         return foundFiles;
     }
@@ -66,6 +68,6 @@ public class FolderScanner {
 
     private void printStatus() {
         String message = "Scanning: " + foldersToScan.size() + ", found: " + foundFiles.size();
-        System.out.print(message + " \r");
+        PrintHelper.printAndReturn(message);
     }
 }

@@ -2,6 +2,8 @@ package backuper;
 
 import java.io.IOException;
 
+import backuper.helpers.PrintHelper;
+
 public class BackuperApp {
 
     public static void main(String[] args) throws IOException {
@@ -22,6 +24,6 @@ public class BackuperApp {
     }
 
     private static void printUsage() {
-        System.out.println("Please use: " + BackuperApp.class.getName() + " <source path> <destination path>");
+        PrintHelper.println("Please use: " + BackuperApp.class.getName() + " <source path> <destination path>");
     }
 }

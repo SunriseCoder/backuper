@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 
 import backuper.FileMetadata.Type;
+import backuper.helpers.FormattingHelper;
+import backuper.helpers.PrintHelper;
 
 public class FileProcessor {
     private static final int COPY_BUFFER_SIZE = 1024 * 1024;
@@ -48,21 +50,23 @@ public class FileProcessor {
     }
 
     public void start() throws IOException {
+        copyStatus.start();
         for (FileMetadata file : filesToCopy) {
             if (Type.DIRECTORY.equals(file.getType())) {
-                System.out.println("Creating directory " + file.getPath());
+                PrintHelper.println("Creating directory " + file.getPath());
                 createDirectory(file);
             } else if (Type.SYMLINK.equals(file.getType())) {
                 // Skipping symlink, because if we copy as ordinary file, access denied
             } else {
-                System.out.println("Copying file: " + file.getPath());
+                String message = "Copying file: " + file.getPath() + " (" + FormattingHelper.humanReadableSize(file.getSize()) + ")";
+                PrintHelper.println(message);
                 copyFile(file);
             }
         }
 
         Collections.reverse(filesToDelete);
         for (FileMetadata file : filesToDelete) {
-            System.out.println("Deleting: " + file.getPath());
+            PrintHelper.println("Deleting: " + file.getPath());
             deleteFile(file);
         }
     }

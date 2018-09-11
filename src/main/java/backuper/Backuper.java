@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import backuper.helpers.FormattingHelper;
+import backuper.helpers.PrintHelper;
+
 public class Backuper {
     private String srcPath;
     private String dstPath;
@@ -25,21 +28,21 @@ public class Backuper {
     }
 
     public void doBackup(Options options) throws IOException {
-        System.out.println("Scanning source folder...");
+        PrintHelper.println("Scanning source folder...");
         Map<String, FileMetadata> srcFiles = folderScanner.scan(srcPath, options);
 
-        System.out.println("Scanning destination folder...");
+        PrintHelper.println("Scanning destination folder...");
         Map<String, FileMetadata> dstFiles = folderScanner.scan(dstPath, options);
 
-        System.out.println("Comparing the trees...");
+        PrintHelper.println("Comparing the trees...");
         compareFileTrees(srcFiles, dstFiles);
         printTreeDiffs();
 
         if (isBackupConfirmed()) {
             processFiles();
-            System.out.println("Copying is done");
+            PrintHelper.println("Copying is done");
         } else {
-            System.out.println("Copying has been cancelled");
+            PrintHelper.println("Copying has been cancelled");
         }
     }
 
@@ -62,37 +65,43 @@ public class Backuper {
     }
 
     private void printTreeDiffs() {
-        System.out.println("New files:");
-        printMetadataCollection(newFiles.values(), "\t + ");
+        PrintHelper.println("New files:");
+        printMetadataCollection(newFiles.values(), "+");
 
-        System.out.println("Files with changed size:");
-        printMetadataCollection(changeSizedFiles.values(), "\t * ");
+        PrintHelper.println("Files with changed size:");
+        printMetadataCollection(changeSizedFiles.values(), "*");
 
-        System.out.println("Deleted files:");
-        printMetadataCollection(deletedFiles.values(), "\t - ");
+        PrintHelper.println("Deleted files:");
+        printMetadataCollection(deletedFiles.values(), "-");
     }
 
     private void printMetadataCollection(Collection<FileMetadata> collection, String prefix) {
         for (FileMetadata element : collection) {
-            String message = prefix;
-
+            String fileType = "";
             switch (element.getType()) {
             case DIRECTORY:
-                message += "|/ ";
+                fileType = "/";
                 break;
             case FILE:
-                message += "## ";
+                fileType = "#";
                 break;
             case SYMLINK:
-                message += "-> ";
+                fileType = ">";
                 break;
             default:
                 break;
             }
 
+            long size = element.getSize();
+            String sizeStr = String.format("%8s", FormattingHelper.humanReadableSize(size));
+
+            String message = "    ";
+            message += sizeStr + " ";
+            message += prefix + " ";
+            message += fileType + " ";
             message += element.getRelativePath();
 
-            System.out.println(message);
+            PrintHelper.println(message);
         }
     }
 
@@ -102,14 +111,14 @@ public class Backuper {
             return true; // If console does not support by environment, do not asking for confirmation
         }
 
-        System.out.println("Please type \"yes\" to start syncronization");
+        PrintHelper.println("Please type \"yes\" to start syncronization");
         String input = console.readLine();
         boolean result = "yes".equals(input);
         return result;
     }
 
     private void processFiles() throws IOException {
-        System.out.println("Synchronization started...");
+        PrintHelper.println("Synchronization started...");
 
         FileProcessor processor = new FileProcessor();
         processor.setSrcPath(srcPath);
