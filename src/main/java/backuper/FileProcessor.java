@@ -78,8 +78,7 @@ public class FileProcessor {
 
     private void copyFile(FileMetadata file) throws IOException {
         try (RandomAccessFile inputFile = new RandomAccessFile(srcPath + "/" + file.getRelativePath(), "r");
-             // TODO Debug with s flag and without
-             RandomAccessFile outputFile = new RandomAccessFile(dstPath + "/" + file.getRelativePath(), "rws");) {
+             RandomAccessFile outputFile = new RandomAccessFile(dstPath + "/" + file.getRelativePath(), "rw");) {
 
             FileChannel in = inputFile.getChannel();
             FileChannel out = outputFile.getChannel();
